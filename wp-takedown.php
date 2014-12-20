@@ -210,9 +210,11 @@ function hurtigtech_redirect_error( $message = '' ) {
  * Activation
  */
 function hurtigtech_takedown_activation() {
-	if ( ! file_exists( ABSPATH . '/wp-maint.php' ) ) {
-		add_site_option( 'hurtigtech_takedown_cancel_file_hash', md5( file_get_contents( plugin_dir_path( __FILE__ ) . 'wp-maint.php' ) ) );
-		copy( plugin_dir_path( __FILE__ ) . 'wp-maint.php', ABSPATH . '/wp-maint.php' );
+	$maint_file = ABSPATH . 'wp-maint.php';
+
+	if ( ! file_exists( $maint_file ) ) {
+		update_site_option( 'hurtigtech_takedown_cancel_file_hash', md5( file_get_contents( plugin_dir_path( __FILE__ ) . 'wp-maint.php' ) ) );
+		copy( plugin_dir_path( __FILE__ ) . 'wp-maint.php', $maint_file );
 	} else {
 		// error... already exists
 	}
@@ -224,23 +226,27 @@ register_activation_hook( __FILE__, 'hurtigtech_takedown_activation' );
  * Deactivation
  */
 function hurtigtech_takedown_deactivation() {
-	$maint_file = ABSPATH . '/wp-maint.php';
+
+	$maint_file = ABSPATH . 'wp-maint.php';
+	echo $maint_file;
 	if ( file_exists( $maint_file ) ) {
 		$hash = get_site_option( 'hurtigtech_takedown_cancel_file_hash' );
 
-		if ( md5( file_get_contents( $maint_file ) ) == $hash ) {
-			unlink( ABSPATH . '/wp-maint.php' );
-			if ( ! file_exists( $maint_file ) ) {
+		if ( md5( file_get_contents( $maint_file ) ) == $hash || isset( $_REQUEST['override-file-changed'] ) ) {
+			unlink( $maint_file );
+			if ( ! file_exists( $maint_file ) || isset( $_REQUEST['override-could-not-delete'] ) ) {
 				delete_site_option( 'hurtigtech_takedown_cancel_file_hash' );
 
 				return;
+			} else {
+				die ( 'Error: Could not Delete ' . $maint_file . ' Please Delete it Manually or add "&override-could-not-delete" on to the end of the url in the address bar' );
 			}
-
+		} else {
+			die ( 'Error: The file ' . $maint_file . ' Has been modified since it was installed, Please Delete it Manually or add "&override-file-changed" on to the end of the url in the address bar' );
 		}
+	} else {
+		delete_site_option( 'hurtigtech_takedown_cancel_file_hash' );
 	}
-
-	//TODO: cancel deactivation
-
 }
 
 register_deactivation_hook( __FILE__, 'hurtigtech_takedown_deactivation' );

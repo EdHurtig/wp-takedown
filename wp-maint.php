@@ -16,7 +16,7 @@ $wp_loader = './wp-load.php';
 
 if ( isset( $_REQUEST['type'] ) && in_array( $_REQUEST['type'], $types ) ) {
 	$type = $_REQUEST['type'];
-}
+}2
 
 $file = "./.$type";
 
