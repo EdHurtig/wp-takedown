@@ -8,7 +8,7 @@
  * Author URI: http://hurtigtechnologies.com
  */
 
-
+include( 'wp-takedown-admin.php' );
 /**
  * Enable Maintenance mode from the Network Admin
  */
@@ -34,31 +34,33 @@ function hurtigtech_enable_maintenance_mode() {
 	if ( is_numeric( $time ) ) {
 		$time = time() + $time - 600;
 	}
-	$stop_key             = wp_hash( random_string( rand( 50, 100 ) ) );
+	$stop_key             = wp_create_nonce( 'wp-takedown' );
 	$cancel_file_required = isset( $_REQUEST['no-cancel-file-ok'] );
 	$cancel_file_exists   = file_exists( ABSPATH . '/wp-maint.php' );
 	if ( $cancel_file_required && ! $cancel_file_exists ) {
 		wp_die( 'The file <code>' . ABSPATH . '/wp-maint.php</code> does not exist.  This file is responsible for allowing you to end maintenance mode early with the click of a link.  Please install it or <a href="&no-cancel-file-ok">proceed without this functionality</a>' );
-	} else if ( file_put_contents( ABSPATH . '/.maintenance', '<?php $upgrading = ' . $time . '; $stop_key = \'' . $stop_key . '\' ?>' ) ) {
-
-		$time_msg = 'Maintenance mode has been activated ';
-
-		if ( is_numeric( $time ) ) {
-			$time_msg .= 'Until ' . date( 'F j, Y g:i:s a', $time + ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS ) + 600 );
-		} else {
-			$time_msg .= 'Indefinitely';
-		}
-		$footer = '<p>You can always end maintenance mode by deleting the <code>.maintenance</code> file in the website\'s root directory: <code>' . ABSPATH . '</code></p>';
-		if ( $cancel_file_exists ) {
-			$stop_link = '<a href="' . site_url( 'wp-maint.php?stop_key=' . urlencode( $stop_key ) ) . '"> End Maintenance Period </a>';
-
-			$message = $time_msg . '. <p>Use this link to automatically end the maintenance period. ' . $stop_link . '</p>' . $footer;
-		} else {
-			$message = $time_msg . $footer;
-		}
-		wp_die( $message, 'Maintenance Mode Enabled!' );
 	} else {
-		wp_die( 'Failed to write <code>.maintenance</code> file in the website\'s root directory <code>' . ABSPATH . '</code>', 'Maintenance Mode Failed!' );
+		if ( file_put_contents( ABSPATH . '/.maintenance', '<?php $upgrading = ' . $time . '; $stop_key = \'' . $stop_key . '\' ?>' ) ) {
+
+			$time_msg = 'Maintenance mode has been activated ';
+
+			if ( is_numeric( $time ) ) {
+				$time_msg .= 'Until ' . date( 'F j, Y g:i:s a', $time + ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS ) + 600 );
+			} else {
+				$time_msg .= 'Indefinitely';
+			}
+			$footer = '<p>You can always end maintenance mode by deleting the <code>.maintenance</code> file in the website\'s root directory: <code>' . ABSPATH . '</code></p>';
+			if ( $cancel_file_exists ) {
+				$stop_link = '<a href="' . site_url( 'wp-maint.php?stop_key=' . urlencode( $stop_key ) ) . '"> End Maintenance Period </a>';
+
+				$message = $time_msg . '. <p>Use this link to automatically end the maintenance period. ' . $stop_link . '</p>' . $footer;
+			} else {
+				$message = $time_msg . $footer;
+			}
+			wp_die( $message, 'Maintenance Mode Enabled!' );
+		} else {
+			wp_die( 'Failed to write <code>.maintenance</code> file in the website\'s root directory <code>' . ABSPATH . '</code>', 'Maintenance Mode Failed!' );
+		}
 	}
 }
 
@@ -70,7 +72,7 @@ add_action( 'admin_post_hurtigtech_enable_maintenance_mode', 'hurtigtech_enable_
  */
 function hurtigtech_enable_lockout() {
 	// Gotta be the best of the best for this one
-	if ( ! is_super_admin() || ! current_user_can( 'manage_network' ) ) {
+	if ( ! is_super_admin() ) {
 		wp_die( 'Cheating Detected... Leave!' );
 		die();
 	}
@@ -91,31 +93,33 @@ function hurtigtech_enable_lockout() {
 	if ( is_numeric( $time ) ) {
 		$time = time() + $time - 600;
 	}
-	$stop_key             = wp_hash( random_string( rand( 50, 100 ) ) );
+	$stop_key             = wp_create_nonce( 'wp-takedown' );
 	$cancel_file_required = isset( $_REQUEST['no-cancel-file-ok'] );
 	$cancel_file_exists   = file_exists( ABSPATH . '/wp-maint.php' );
 	if ( $cancel_file_required && ! $cancel_file_exists ) {
 		wp_die( 'The file <code>' . ABSPATH . '/wp-maint.php</code> does not exist.  This file is responsible for allowing you to end the lockout early with the click of a link.  Please install it or <a href="&no-cancel-file-ok">proceed without this functionality</a>' );
-	} else if ( file_put_contents( ABSPATH . '/.lockout', '<?php $upgrading = ' . $time . '; $stop_key = \'' . $stop_key . '\' ?>' ) ) {
-
-		$time_msg = 'Lockout is currently in effect ';
-
-		if ( is_numeric( $time ) ) {
-			$time_msg .= 'Until ' . date( 'F j, Y g:i:s a', $time + ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS ) + 600 );
-		} else {
-			$time_msg .= 'Indefinitely';
-		}
-		$footer = '<p>You can always this lockout mode by deleting the <code>.lockout</code> file in the website\'s root directory: <code>' . ABSPATH . '</code></p>';
-		if ( $cancel_file_exists ) {
-			$stop_link = '<a href="' . site_url( 'wp-maint.php?stop_key=' . urlencode( $stop_key ) . '&type=lockout' ) . '"> End Lockout </a>';
-
-			$message = $time_msg . '. <p>Use this link to automatically end the lockout. ' . $stop_link . '</p>' . $footer;
-		} else {
-			$message = $time_msg . $footer;
-		}
-		wp_die( $message, 'Lockout Enabled!' );
 	} else {
-		wp_die( 'Failed to write <code>.lockout</code> file in the website\'s root directory <code>' . ABSPATH . '</code>', 'Lockout Failed!' );
+		if ( file_put_contents( ABSPATH . '/.lockout', '<?php $upgrading = ' . $time . '; $stop_key = \'' . $stop_key . '\' ?>' ) ) {
+
+			$time_msg = 'Lockout is currently in effect ';
+
+			if ( is_numeric( $time ) ) {
+				$time_msg .= 'Until ' . date( 'F j, Y g:i:s a', $time + ( get_option( 'gmt_offset' ) * HOUR_IN_SECONDS ) + 600 );
+			} else {
+				$time_msg .= 'Indefinitely';
+			}
+			$footer = '<p>You can always this lockout mode by deleting the <code>.lockout</code> file in the website\'s root directory: <code>' . ABSPATH . '</code></p>';
+			if ( $cancel_file_exists ) {
+				$stop_link = '<a href="' . site_url( 'wp-maint.php?stop_key=' . urlencode( $stop_key ) . '&type=lockout' ) . '"> End Lockout </a>';
+
+				$message = $time_msg . '. <p>Use this link to automatically end the lockout. ' . $stop_link . '</p>' . $footer;
+			} else {
+				$message = $time_msg . $footer;
+			}
+			wp_die( $message, 'Lockout Enabled!' );
+		} else {
+			wp_die( 'Failed to write <code>.lockout</code> file in the website\'s root directory <code>' . ABSPATH . '</code>', 'Lockout Failed!' );
+		}
 	}
 }
 
@@ -207,8 +211,8 @@ function hurtigtech_redirect_error( $message = '' ) {
  */
 function hurtigtech_takedown_activation() {
 	if ( ! file_exists( ABSPATH . '/wp-maint.php' ) ) {
-		add_site_option( 'hurtigtech_takedown_cancel_file_hash', md5( plugins_dir( 'wp-maint.php', __FILE__ ) ) );
-		copy( plugins_dir( 'wp-maint.php', __FILE__ ), ABSPATH . '/wp-maint.php' );
+		add_site_option( 'hurtigtech_takedown_cancel_file_hash', md5( file_get_contents( plugin_dir_path( __FILE__ ) . 'wp-maint.php' ) ) );
+		copy( plugin_dir_path( __FILE__ ) . 'wp-maint.php', ABSPATH . '/wp-maint.php' );
 	} else {
 		// error... already exists
 	}

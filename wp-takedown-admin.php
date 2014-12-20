@@ -7,14 +7,14 @@ function hurtigtech_register_takedown_page() {
 	$cap = hurtigtech_get_takedown_cap();
 
 	if ( current_user_can( $cap ) ) {
-		add_menu_page( 'TakeDown!', 'TakeDown!', $cap, 'hurtigtech-takedown-page', 'hurtigtech_takedown_page', 'dashicons-hammer', 165 );
+		add_menu_page( 'TakeDown!', 'TakeDown!', $cap, 'hurtigtech-takedown-page', 'hurtigtech_takedown_admin_page', 'dashicons-hammer', 165 );
 	}
 }
 
 add_action( 'network_admin_menu', 'hurtigtech_register_takedown_page' );
 add_action( 'admin_menu', 'hurtigtech_register_takedown_page' );
 
-function wp_takedown_admin() {
+function hurtigtech_takedown_admin_page() {
 	?>
 	<div class="hurtigtech-setting-section">
 		<h2>Takedown!</h2>
